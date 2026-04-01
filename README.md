@@ -1,4 +1,4 @@
-# SentinelAI — Multi-Camera AI Surveillance System
+# MUSCOTT — Multi-Camera AI Surveillance System
 
 ## Quick Start
 
