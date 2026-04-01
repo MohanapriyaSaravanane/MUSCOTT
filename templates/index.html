@@ -1,0 +1,292 @@
+{% extends "layout.html" %}
+{% block title %}MUSCOTT — Live Surveillance{% endblock %}
+
+{% block content %}
+<div class="scanlines" aria-hidden="true"></div>
+
+<!-- ══════════════════ HEADER ══════════════════ -->
+<header class="hdr">
+  <div class="hdr-left">
+    <div class="logo-wrap">
+      <svg class="logo-hex" width="40" height="40" viewBox="0 0 40 40">
+        <polygon points="20,2 37,11 37,29 20,38 3,29 3,11"
+                 stroke="#00ffe7" stroke-width="1.5" fill="rgba(0,255,231,0.04)"/>
+        <polygon points="20,9 30,15 30,25 20,31 10,25 10,15"
+                 stroke="#00ffe7" stroke-width="0.8" fill="rgba(0,255,231,0.06)"/>
+        <circle cx="20" cy="20" r="5" fill="#00ffe7" opacity="0.9"/>
+        <circle cx="20" cy="20" r="3" fill="#040810"/>
+        <circle cx="20" cy="20" r="1.5" fill="#00ffe7"/>
+      </svg>
+      <div class="logo-text">
+        <span class="logo-primary">MUS<span class="logo-ai">COTT</span></span>
+        <span class="logo-sub">THREAT INTELLIGENCE SYSTEM</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hdr-center">
+    <div class="threat-badge" id="threatBadge" data-level="safe">
+      <div class="threat-ring">
+        <span class="threat-icon" id="threatIcon">●</span>
+      </div>
+      <div class="threat-text">
+        <span class="threat-label" id="threatLabel">SECURE</span>
+        <span class="threat-sub" id="threatSub">All Systems Normal</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hdr-right">
+    <div class="hdr-stats">
+      <div class="hdr-stat">
+        <div class="hdr-stat-val" id="camCount">{{ cam_count }}</div>
+        <div class="hdr-stat-key">CAMERAS</div>
+      </div>
+      <div class="hdr-stat-div"></div>
+      <div class="hdr-stat">
+        <div class="hdr-stat-val" id="personCount">0</div>
+        <div class="hdr-stat-key">PERSONS</div>
+      </div>
+      <div class="hdr-stat-div"></div>
+      <div class="hdr-stat">
+        <div class="hdr-stat-val red" id="weaponCount">0</div>
+        <div class="hdr-stat-key">WEAPONS</div>
+      </div>
+      <div class="hdr-stat-div"></div>
+      <div class="hdr-stat">
+        <div class="hdr-stat-val cyan" id="streamFps">--</div>
+        <div class="hdr-stat-key">FPS</div>
+      </div>
+    </div>
+    <div class="clock-block">
+      <div class="clock" id="clock">00:00:00</div>
+      <div class="clock-date" id="clockDate">— — —</div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════ BODY ══════════════════ -->
+<div class="body-wrap">
+
+  <!-- ── LEFT PANEL ── -->
+  <aside class="left-panel">
+
+    <!-- THREAT MATRIX -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-dot"></span>THREAT MATRIX
+      </div>
+      <div class="threat-matrix">
+        <div class="tm-row" id="tl-level3">
+          <div class="tm-bar-wrap">
+            <div class="tm-bar red" id="tmBar3" style="width:0%"></div>
+          </div>
+          <div class="tm-info">
+            <div class="tm-label"><span class="tm-dot red"></span>CRITICAL</div>
+            <div class="tm-desc">Violence + Firearm</div>
+          </div>
+          <div class="tm-ind" id="ind-level3"></div>
+        </div>
+        <div class="tm-row" id="tl-level2">
+          <div class="tm-bar-wrap">
+            <div class="tm-bar orange" id="tmBar2" style="width:0%"></div>
+          </div>
+          <div class="tm-info">
+            <div class="tm-label"><span class="tm-dot orange"></span>HIGH</div>
+            <div class="tm-desc">Violence + Blade</div>
+          </div>
+          <div class="tm-ind" id="ind-level2"></div>
+        </div>
+        <div class="tm-row" id="tl-level1">
+          <div class="tm-bar-wrap">
+            <div class="tm-bar yellow" id="tmBar1" style="width:0%"></div>
+          </div>
+          <div class="tm-info">
+            <div class="tm-label"><span class="tm-dot yellow"></span>ELEVATED</div>
+            <div class="tm-desc">Motion Violence</div>
+          </div>
+          <div class="tm-ind" id="ind-level1"></div>
+        </div>
+        <div class="tm-row active-level" id="tl-safe">
+          <div class="tm-bar-wrap">
+            <div class="tm-bar green" id="tmBarSafe" style="width:100%"></div>
+          </div>
+          <div class="tm-info">
+            <div class="tm-label"><span class="tm-dot green"></span>SECURE</div>
+            <div class="tm-desc">No Active Threats</div>
+          </div>
+          <div class="tm-ind active" id="ind-safe"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMERA MANAGEMENT -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-dot cyan"></span>CAMERA MANAGEMENT
+      </div>
+
+      <!-- Camera list -->
+      <div id="camStatusList" class="cam-list">
+        {% for i in range(cam_count) %}
+        <div class="cam-item" id="camRow{{ i }}">
+          <div class="cam-item-left">
+            <div class="cam-live-dot" id="camDot{{ i }}"></div>
+            <div class="cam-item-info">
+              <div class="cam-item-name">CAM {{ i }}</div>
+              <div class="cam-item-meta" id="camMeta{{ i }}">Connecting…</div>
+            </div>
+          </div>
+          <div class="cam-item-right">
+            <div class="cam-badge safe" id="camBadge{{ i }}">SAFE</div>
+            <button class="cam-remove-btn" onclick="removeCamera({{ i }})" title="Remove camera">✕</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Add camera -->
+      <div class="add-cam-section">
+        <div class="add-cam-label">ADD IP CAMERA</div>
+        <div class="ip-input-wrap">
+          <span class="ip-prefix">rtsp://</span>
+          <input id="ipInput" class="ip-input" type="text"
+                 placeholder="169.254.47.240"
+                 pattern="^(\d{1,3}\.){3}\d{1,3}$"
+                 maxlength="15" />
+          <span class="ip-suffix">/live/0/MAIN</span>
+        </div>
+        <div class="add-cam-actions">
+          <button class="btn-primary" onclick="addCamera()">＋ CONNECT</button>
+        </div>
+        <div class="ip-hint" id="ipHint"></div>
+      </div>
+    </div>
+
+    <!-- ACTIVE TRACKS -->
+    <div class="card card-flex">
+      <div class="card-title">
+        <span class="card-title-dot" style="background:var(--indigo)"></span>ACTIVE TRACKS
+      </div>
+      <div id="trackList" class="track-list">
+        <div class="empty-state">No active tracks</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── FEED CENTRE ── -->
+  <section class="feed-col">
+
+    <!-- Feed toolbar -->
+    <div class="feed-toolbar">
+      <div class="feed-toolbar-left">
+        <div class="live-pill">
+          <span class="live-dot"></span>LIVE
+        </div>
+        <span class="feed-cam-label">MULTI-CAMERA COMPOSITE</span>
+      </div>
+      <div class="feed-toolbar-right">
+        <button class="tool-btn" onclick="toggleAI()" id="aiToggleBtn">
+          <svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="5" y="4" width="1.5" height="6" fill="currentColor"/><rect x="7.5" y="4" width="1.5" height="6" fill="currentColor"/></svg>
+          PAUSE AI
+        </button>
+        <button class="tool-btn" onclick="captureSnapshot()">
+          <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="3" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="7" cy="7.5" r="2" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M5 3 L5.8 1.5 H8.2 L9 3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+          SNAPSHOT
+        </button>
+        <button class="tool-btn" onclick="toggleFullscreen()">
+          <svg width="14" height="14" viewBox="0 0 14 14"><path d="M1 4V1H4M10 1H13V4M13 10V13H10M4 13H1V10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          FULLSCREEN
+        </button>
+      </div>
+    </div>
+
+    <!-- Feed frame -->
+    <div class="feed-frame" id="feedWrapper">
+      <img id="videoFeed" src="/video_feed" alt="Live Feed" />
+      <div class="threat-overlay" id="feedAlertOverlay" style="display:none;">
+        <div class="threat-overlay-inner">
+          <div class="threat-overlay-icon">⚠</div>
+          <div class="threat-overlay-text">THREAT DETECTED</div>
+        </div>
+      </div>
+      <!-- Corner decorations -->
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+    </div>
+
+    <!-- Feed status bar -->
+    <div class="feed-statusbar">
+      <div class="fsb-pill" id="streamStatusPill">
+        <span class="fsb-dot green"></span>
+        <span id="streamStatus">STREAMING</span>
+      </div>
+      <div class="fsb-divider"></div>
+      <div class="fsb-stat"><span class="fsb-key">RESOLUTION</span><span class="fsb-val">640 × 360</span></div>
+      <div class="fsb-stat"><span class="fsb-key">CODEC</span><span class="fsb-val">MJPEG</span></div>
+      <div class="fsb-stat"><span class="fsb-key">STREAM FPS</span><span class="fsb-val green" id="statusFps">--</span></div>
+      <div class="fsb-stat"><span class="fsb-key">AI</span><span class="fsb-val green" id="aiStatus">ACTIVE</span></div>
+      <div class="fsb-divider"></div>
+      <div class="fsb-stat"><span class="fsb-key">VEHICLES</span><span class="fsb-val" id="vehicleCount">0</span></div>
+    </div>
+
+  </section>
+
+  <!-- ── RIGHT PANEL ── -->
+  <aside class="right-panel">
+
+    <!-- ALERT LOG -->
+    <div class="card card-alerts">
+      <div class="card-title">
+        <span class="card-title-dot red"></span>ALERT LOG
+        <button class="card-action-btn" onclick="clearAlerts()">CLEAR</button>
+      </div>
+      <div id="alertFeed" class="alert-feed">
+        <div class="empty-state">System secure — no alerts</div>
+      </div>
+    </div>
+
+    <!-- DETECTION STATS -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-dot cyan"></span>DETECTION STATS
+      </div>
+      <div class="stat-bars">
+        <div class="sb-row">
+          <div class="sb-label">PERSONS</div>
+          <div class="sb-track"><div class="sb-fill indigo" id="hbPersons" style="width:0%"></div></div>
+          <div class="sb-num" id="hbPersonsVal">0</div>
+        </div>
+        <div class="sb-row">
+          <div class="sb-label">VEHICLES</div>
+          <div class="sb-track"><div class="sb-fill teal" id="hbVehicles" style="width:0%"></div></div>
+          <div class="sb-num" id="hbVehiclesVal">0</div>
+        </div>
+        <div class="sb-row">
+          <div class="sb-label">WEAPONS</div>
+          <div class="sb-track"><div class="sb-fill red" id="hbWeapons" style="width:0%"></div></div>
+          <div class="sb-num" id="hbWeaponsVal">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENT LOG -->
+    <div class="card card-log">
+      <div class="card-title">
+        <span class="card-title-dot" style="background:var(--text-dim)"></span>
+        EVENT LOG
+        <button class="card-action-btn" onclick="refreshLog()">↻ REFRESH</button>
+      </div>
+      <div id="rawLog" class="raw-log">Loading…</div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- Global threat flash -->
+<div id="globalFlash" class="global-flash" style="display:none;"></div>
+
+{% endblock %}
